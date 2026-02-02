@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#4f46e5"/>
+      <stop offset="100%" style="stop-color:#7c3aed"/>
+    </linearGradient>
+  </defs>
+  <rect width="128" height="128" rx="24" fill="url(#bg)"/>
+  <g fill="white">
+    <!-- Dollar sign -->
+    <path d="M64 24v8M64 96v8" stroke="white" stroke-width="6" stroke-linecap="round"/>
+    <path d="M52 44c0-8 6-12 12-12s12 4 12 12c0 8-12 8-12 16s12 8 12 16c0 8-6 12-12 12s-12-4-12-12" 
+          fill="none" stroke="white" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+    <!-- Chart bars -->
+    <rect x="20" y="80" width="12" height="24" rx="2" opacity="0.6"/>
+    <rect x="96" y="60" width="12" height="44" rx="2" opacity="0.6"/>
+  </g>
+</svg>
