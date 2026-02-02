@@ -1,5 +1,9 @@
 # Budget Tracker
 
+***
+This is just an initial readme file. The app is still in the process of POC, so it isn't ready for use. Also features list needs to be updated after initial development is done. These are just currently planned features.
+***
+
 A personal finance application for tracking income, expenses, and credit card payments. Built with Tauri, Svelte, and SQLite.
 
 ## Features
@@ -33,7 +37,7 @@ Before you begin, ensure you have the following installed:
 1. **Clone the repository**
 
    ```bash
-   git clone https://github.com/yourusername/budget-tracker.git
+   git clone https://github.com/bokiperic/budget-tracker.git
    cd budget-tracker
    ```
 
