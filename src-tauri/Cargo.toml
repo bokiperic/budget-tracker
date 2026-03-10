@@ -2,20 +2,16 @@
 name = "budget-tracker"
 version = "0.1.0"
 description = "Personal finance budget and credit card payment tracker"
-authors = ["you"]
+authors = ["Bojan Peric"]
 license = ""
 repository = ""
 edition = "2021"
 
 [build-dependencies]
-tauri-build = { version = "1.5", features = [] }
+tauri-build = { version = "2", features = [] }
 
 [dependencies]
-tauri = { version = "1.6", features = ["shell-open"] }
+tauri = { version = "2", features = [] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-tauri-plugin-sql = { version = "1", features = ["sqlite"] }
-
-[features]
-default = ["custom-protocol"]
-custom-protocol = ["tauri/custom-protocol"]
+tauri-plugin-sql = { version = "2", features = ["sqlite"] }
