@@ -11,7 +11,7 @@ jobs:
     name: Code check (build)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v4
         with:
           node-version-file: ".nvmrc"
@@ -23,7 +23,7 @@ jobs:
     name: Quality check (svelte-check, eslint, prettier)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v4
         with:
           node-version-file: ".nvmrc"
@@ -37,7 +37,7 @@ jobs:
     name: Security check (npm audit)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v4
         with:
           node-version-file: ".nvmrc"
