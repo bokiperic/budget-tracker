@@ -1,5 +1,5 @@
 <script>
-  import { onMount } from 'svelte';
+  import { onMount } from "svelte";
   import {
     getCreditCards,
     addCreditCard,
@@ -7,30 +7,33 @@
     getPendingCreditCardStatements,
     addCreditCardStatement,
     markStatementPaid,
-  } from '../db.js';
-  import { formatCurrency } from '../format.js';
+  } from "../db.js";
+  import { formatCurrency } from "../format.js";
 
   let cards = [];
   let statements = [];
   let error = null;
   let loading = true;
 
-  let name = '';
-  let lastFour = '';
-  let creditLimit = '';
-  let billingDay = '';
-  let dueDay = '';
+  let name = "";
+  let lastFour = "";
+  let creditLimit = "";
+  let billingDay = "";
+  let dueDay = "";
 
-  let stCardId = '';
-  let stStatementDate = '';
-  let stDueDate = '';
-  let stTotal = '';
-  let stMinPayment = '';
+  let stCardId = "";
+  let stStatementDate = "";
+  let stDueDate = "";
+  let stTotal = "";
+  let stMinPayment = "";
 
   async function load() {
     loading = true;
     try {
-      [cards, statements] = await Promise.all([getCreditCards(), getPendingCreditCardStatements()]);
+      [cards, statements] = await Promise.all([
+        getCreditCards(),
+        getPendingCreditCardStatements(),
+      ]);
     } catch (e) {
       error = e.message;
     } finally {
@@ -48,13 +51,13 @@
         lastFour || null,
         creditLimit ? Number(creditLimit) : null,
         billingDay ? Number(billingDay) : null,
-        dueDay ? Number(dueDay) : null
+        dueDay ? Number(dueDay) : null,
       );
-      name = '';
-      lastFour = '';
-      creditLimit = '';
-      billingDay = '';
-      dueDay = '';
+      name = "";
+      lastFour = "";
+      creditLimit = "";
+      billingDay = "";
+      dueDay = "";
       await load();
     } catch (e) {
       error = e.message;
@@ -79,13 +82,13 @@
         stStatementDate,
         stDueDate,
         Number(stTotal),
-        stMinPayment ? Number(stMinPayment) : null
+        stMinPayment ? Number(stMinPayment) : null,
       );
-      stCardId = '';
-      stStatementDate = '';
-      stDueDate = '';
-      stTotal = '';
-      stMinPayment = '';
+      stCardId = "";
+      stStatementDate = "";
+      stDueDate = "";
+      stTotal = "";
+      stMinPayment = "";
       await load();
     } catch (e) {
       error = e.message;
@@ -121,17 +124,34 @@
       </div>
       <div class="form-group">
         <label for="cc-last-four">Last 4 Digits</label>
-        <input type="text" id="cc-last-four" maxlength="4" bind:value={lastFour} />
+        <input
+          type="text"
+          id="cc-last-four"
+          maxlength="4"
+          bind:value={lastFour}
+        />
       </div>
     </div>
     <div class="form-row">
       <div class="form-group">
         <label for="cc-limit">Credit Limit</label>
-        <input type="number" id="cc-limit" step="0.01" min="0" bind:value={creditLimit} />
+        <input
+          type="number"
+          id="cc-limit"
+          step="0.01"
+          min="0"
+          bind:value={creditLimit}
+        />
       </div>
       <div class="form-group">
         <label for="cc-billing">Billing Day</label>
-        <input type="number" id="cc-billing" min="1" max="31" bind:value={billingDay} />
+        <input
+          type="number"
+          id="cc-billing"
+          min="1"
+          max="31"
+          bind:value={billingDay}
+        />
       </div>
       <div class="form-group">
         <label for="cc-due">Due Day</label>
@@ -152,9 +172,20 @@
     <ul class="row-list">
       {#each cards as c (c.id)}
         <li>
-          <span>{c.name} {c.last_four_digits ? `•••• ${c.last_four_digits}` : ''}</span>
-          <span class="text-muted">{c.credit_limit ? formatCurrency(c.credit_limit) + ' limit' : ''}</span>
-          <button type="button" class="danger" on:click={() => handleDeleteCard(c.id)}>Delete</button>
+          <span
+            >{c.name}
+            {c.last_four_digits ? `•••• ${c.last_four_digits}` : ""}</span
+          >
+          <span class="text-muted"
+            >{c.credit_limit
+              ? formatCurrency(c.credit_limit) + " limit"
+              : ""}</span
+          >
+          <button
+            type="button"
+            class="danger"
+            on:click={() => handleDeleteCard(c.id)}>Delete</button
+          >
         </li>
       {/each}
     </ul>
@@ -168,7 +199,7 @@
       <label for="st-card">Card</label>
       <select id="st-card" bind:value={stCardId} required>
         <option value="">Select card...</option>
-        {#each cards as c}
+        {#each cards as c (c.id)}
           <option value={c.id}>{c.name}</option>
         {/each}
       </select>
@@ -176,7 +207,12 @@
     <div class="form-row">
       <div class="form-group">
         <label for="st-statement-date">Statement Date</label>
-        <input type="date" id="st-statement-date" bind:value={stStatementDate} required />
+        <input
+          type="date"
+          id="st-statement-date"
+          bind:value={stStatementDate}
+          required
+        />
       </div>
       <div class="form-group">
         <label for="st-due-date">Due Date</label>
@@ -186,11 +222,24 @@
     <div class="form-row">
       <div class="form-group">
         <label for="st-total">Total Amount</label>
-        <input type="number" id="st-total" step="0.01" min="0" bind:value={stTotal} required />
+        <input
+          type="number"
+          id="st-total"
+          step="0.01"
+          min="0"
+          bind:value={stTotal}
+          required
+        />
       </div>
       <div class="form-group">
         <label for="st-min">Minimum Payment</label>
-        <input type="number" id="st-min" step="0.01" min="0" bind:value={stMinPayment} />
+        <input
+          type="number"
+          id="st-min"
+          step="0.01"
+          min="0"
+          bind:value={stMinPayment}
+        />
       </div>
     </div>
     <button type="submit" class="primary">Add Statement</button>
@@ -207,7 +256,11 @@
         <li>
           <span>{s.credit_card?.name} due {s.due_date}</span>
           <span class="text-danger">{formatCurrency(s.total_amount)}</span>
-          <button type="button" class="secondary" on:click={() => handleMarkPaid(s.id)}>Mark Paid</button>
+          <button
+            type="button"
+            class="secondary"
+            on:click={() => handleMarkPaid(s.id)}>Mark Paid</button
+          >
         </li>
       {/each}
     </ul>

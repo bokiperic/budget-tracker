@@ -1,12 +1,12 @@
 <script>
-  import { onMount } from 'svelte';
-  import { getMonthlyBudget, setMonthlyBudget } from '../db.js';
-  import { currentYearMonth } from '../format.js';
+  import { onMount } from "svelte";
+  import { getMonthlyBudget, setMonthlyBudget } from "../db.js";
+  import { currentYearMonth } from "../format.js";
 
   let month = currentYearMonth();
-  let incomeTarget = '';
-  let expenseLimit = '';
-  let savingsTargetPercent = '';
+  let incomeTarget = "";
+  let expenseLimit = "";
+  let savingsTargetPercent = "";
   let error = null;
   let message = null;
   let loading = true;
@@ -17,9 +17,9 @@
     message = null;
     try {
       const budget = await getMonthlyBudget(month);
-      incomeTarget = budget?.income_target ?? '';
-      expenseLimit = budget?.expense_limit ?? '';
-      savingsTargetPercent = budget?.savings_target_percent ?? '';
+      incomeTarget = budget?.income_target ?? "";
+      expenseLimit = budget?.expense_limit ?? "";
+      savingsTargetPercent = budget?.savings_target_percent ?? "";
     } catch (e) {
       error = e.message;
     } finally {
@@ -37,9 +37,9 @@
         month,
         incomeTarget ? Number(incomeTarget) : null,
         expenseLimit ? Number(expenseLimit) : null,
-        savingsTargetPercent ? Number(savingsTargetPercent) : null
+        savingsTargetPercent ? Number(savingsTargetPercent) : null,
       );
-      message = 'Budget saved.';
+      message = "Budget saved.";
     } catch (e) {
       error = e.message;
     }
@@ -67,15 +67,34 @@
     <form on:submit|preventDefault={handleSave}>
       <div class="form-group">
         <label for="income-target">Income Target</label>
-        <input type="number" id="income-target" step="0.01" min="0" bind:value={incomeTarget} />
+        <input
+          type="number"
+          id="income-target"
+          step="0.01"
+          min="0"
+          bind:value={incomeTarget}
+        />
       </div>
       <div class="form-group">
         <label for="expense-limit">Expense Limit</label>
-        <input type="number" id="expense-limit" step="0.01" min="0" bind:value={expenseLimit} />
+        <input
+          type="number"
+          id="expense-limit"
+          step="0.01"
+          min="0"
+          bind:value={expenseLimit}
+        />
       </div>
       <div class="form-group">
         <label for="savings-target">Savings Target (%)</label>
-        <input type="number" id="savings-target" step="0.1" min="0" max="100" bind:value={savingsTargetPercent} />
+        <input
+          type="number"
+          id="savings-target"
+          step="0.1"
+          min="0"
+          max="100"
+          bind:value={savingsTargetPercent}
+        />
       </div>
       <button type="submit" class="primary">Save Budget</button>
     </form>

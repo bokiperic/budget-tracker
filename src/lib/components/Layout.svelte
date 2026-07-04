@@ -1,6 +1,6 @@
 <script>
-  import { link } from 'svelte-spa-router';
-  import { signOut } from '../auth.js';
+  import { link } from "svelte-spa-router";
+  import { signOut } from "../auth.js";
 </script>
 
 <div class="app-shell">

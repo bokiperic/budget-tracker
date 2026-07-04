@@ -1,23 +1,31 @@
 <script>
-  import { onMount } from 'svelte';
-  import { getTransactions, addTransaction, deleteTransaction, getCategories } from '../db.js';
-  import { formatCurrency } from '../format.js';
+  import { onMount } from "svelte";
+  import {
+    getTransactions,
+    addTransaction,
+    deleteTransaction,
+    getCategories,
+  } from "../db.js";
+  import { formatCurrency } from "../format.js";
 
   let transactions = [];
   let categories = [];
   let error = null;
   let loading = true;
 
-  let type = 'expense';
-  let amount = '';
-  let description = '';
-  let categoryId = '';
+  let type = "expense";
+  let amount = "";
+  let description = "";
+  let categoryId = "";
   let date = new Date().toISOString().slice(0, 10);
 
   async function load() {
     loading = true;
     try {
-      [transactions, categories] = await Promise.all([getTransactions(), getCategories()]);
+      [transactions, categories] = await Promise.all([
+        getTransactions(),
+        getCategories(),
+      ]);
     } catch (e) {
       error = e.message;
     } finally {
@@ -30,10 +38,16 @@
   async function handleSubmit() {
     error = null;
     try {
-      await addTransaction(type, Number(amount), description || null, categoryId || null, date);
-      amount = '';
-      description = '';
-      categoryId = '';
+      await addTransaction(
+        type,
+        Number(amount),
+        description || null,
+        categoryId || null,
+        date,
+      );
+      amount = "";
+      description = "";
+      categoryId = "";
       await load();
     } catch (e) {
       error = e.message;
@@ -73,7 +87,15 @@
       </div>
       <div class="form-group">
         <label for="amount">Amount</label>
-        <input type="number" id="amount" placeholder="0.00" step="0.01" min="0" bind:value={amount} required />
+        <input
+          type="number"
+          id="amount"
+          placeholder="0.00"
+          step="0.01"
+          min="0"
+          bind:value={amount}
+          required
+        />
       </div>
     </div>
     <div class="form-row">
@@ -95,7 +117,7 @@
       <label for="category">Category</label>
       <select id="category" bind:value={categoryId}>
         <option value="">Select category...</option>
-        {#each categories as cat}
+        {#each categories as cat (cat.id)}
           <option value={cat.id}>{cat.icon} {cat.name}</option>
         {/each}
       </select>
@@ -109,20 +131,32 @@
   {#if loading}
     <p class="text-muted">Loading…</p>
   {:else if transactions.length === 0}
-    <p class="text-muted">No transactions yet. Add your first transaction above!</p>
+    <p class="text-muted">
+      No transactions yet. Add your first transaction above!
+    </p>
   {:else}
     <ul class="transaction-list">
       {#each transactions as t (t.id)}
         <li>
           <div>
-            <span class="tx-desc">{t.category?.icon ?? '💰'} {t.description || t.type}</span>
+            <span class="tx-desc"
+              >{t.category?.icon ?? "💰"} {t.description || t.type}</span
+            >
             <span class="text-muted tx-date">{t.date}</span>
           </div>
           <div class="tx-right">
-            <span class="tx-amount" class:text-success={t.type === 'income'} class:text-danger={t.type !== 'income'}>
-              {t.type === 'income' ? '+' : '-'}{formatCurrency(t.amount)}
+            <span
+              class="tx-amount"
+              class:text-success={t.type === "income"}
+              class:text-danger={t.type !== "income"}
+            >
+              {t.type === "income" ? "+" : "-"}{formatCurrency(t.amount)}
             </span>
-            <button type="button" class="secondary" on:click={() => handleDelete(t.id)}>Delete</button>
+            <button
+              type="button"
+              class="secondary"
+              on:click={() => handleDelete(t.id)}>Delete</button
+            >
           </div>
         </li>
       {/each}
