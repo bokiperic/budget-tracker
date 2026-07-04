@@ -3,7 +3,6 @@ node_modules/
 
 # Build outputs
 dist/
-src-tauri/target/
 
 # IDE
 .vscode/
@@ -29,7 +28,3 @@ npm-debug.log*
 *.db-journal
 *.sqlite
 *.sqlite3
-
-# Tauri
-src-tauri/WixTools/
-src-tauri/icons/*.ico.bak

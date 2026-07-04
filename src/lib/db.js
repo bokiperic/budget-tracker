@@ -1,145 +1,23 @@
 /**
- * Database utility module for Budget Tracker
- * Uses Tauri's SQL plugin with SQLite
+ * Data access layer for Budget Tracker
+ * Talks to Supabase (Postgres + Row Level Security) — every query is
+ * automatically scoped to the signed-in user by RLS policies, so no
+ * client-side user_id filtering is needed here.
  */
 
-import Database from '@tauri-apps/plugin-sql';
+import { supabase } from './supabaseClient.js';
 
-let db = null;
-
-/**
- * Initialize the SQLite database and create tables if they don't exist
- */
-export async function initDatabase() {
-  // Connect to SQLite database (creates file if it doesn't exist)
-  db = await Database.load('sqlite:budget_tracker.db');
-
-  // Create tables
-  await db.execute(`
-    CREATE TABLE IF NOT EXISTS settings (
-      key TEXT PRIMARY KEY,
-      value TEXT NOT NULL,
-      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    )
-  `);
-
-  await db.execute(`
-    CREATE TABLE IF NOT EXISTS categories (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT NOT NULL UNIQUE,
-      type TEXT NOT NULL CHECK(type IN ('income', 'expense', 'both')),
-      icon TEXT,
-      color TEXT,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    )
-  `);
-
-  await db.execute(`
-    CREATE TABLE IF NOT EXISTS transactions (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      type TEXT NOT NULL CHECK(type IN ('income', 'expense', 'credit_payment')),
-      amount REAL NOT NULL,
-      description TEXT,
-      category_id INTEGER,
-      date DATE NOT NULL DEFAULT CURRENT_DATE,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (category_id) REFERENCES categories(id)
-    )
-  `);
-
-  await db.execute(`
-    CREATE TABLE IF NOT EXISTS credit_cards (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT NOT NULL,
-      last_four_digits TEXT,
-      credit_limit REAL,
-      billing_day INTEGER,
-      due_day INTEGER,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    )
-  `);
-
-  await db.execute(`
-    CREATE TABLE IF NOT EXISTS credit_card_statements (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      credit_card_id INTEGER NOT NULL,
-      statement_date DATE NOT NULL,
-      due_date DATE NOT NULL,
-      total_amount REAL NOT NULL,
-      minimum_payment REAL,
-      paid_amount REAL DEFAULT 0,
-      is_paid INTEGER DEFAULT 0,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (credit_card_id) REFERENCES credit_cards(id)
-    )
-  `);
-
-  await db.execute(`
-    CREATE TABLE IF NOT EXISTS monthly_budgets (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      month TEXT NOT NULL,
-      income_target REAL,
-      expense_limit REAL,
-      savings_target_percent REAL,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      UNIQUE(month)
-    )
-  `);
-
-  // Insert default categories if none exist
-  const categories = await db.select('SELECT COUNT(*) as count FROM categories');
-  if (categories[0].count === 0) {
-    await seedDefaultCategories();
-  }
-
-  console.log('Database initialized successfully');
-  return db;
+function throwIfError(error) {
+  if (error) throw error;
 }
 
-/**
- * Seed default categories
- */
-async function seedDefaultCategories() {
-  const defaultCategories = [
-    { name: 'Salary', type: 'income', icon: '💼', color: '#10b981' },
-    { name: 'Freelance', type: 'income', icon: '💻', color: '#06b6d4' },
-    { name: 'Investments', type: 'income', icon: '📈', color: '#8b5cf6' },
-    { name: 'Other Income', type: 'income', icon: '💵', color: '#22c55e' },
-    { name: 'Food & Dining', type: 'expense', icon: '🍽️', color: '#f59e0b' },
-    { name: 'Transportation', type: 'expense', icon: '🚗', color: '#3b82f6' },
-    { name: 'Utilities', type: 'expense', icon: '💡', color: '#eab308' },
-    { name: 'Entertainment', type: 'expense', icon: '🎬', color: '#ec4899' },
-    { name: 'Shopping', type: 'expense', icon: '🛍️', color: '#f43f5e' },
-    { name: 'Healthcare', type: 'expense', icon: '🏥', color: '#14b8a6' },
-    { name: 'Housing', type: 'expense', icon: '🏠', color: '#6366f1' },
-    { name: 'Education', type: 'expense', icon: '📚', color: '#a855f7' },
-    { name: 'Credit Card', type: 'expense', icon: '💳', color: '#ef4444' },
-    { name: 'Other Expense', type: 'expense', icon: '📦', color: '#64748b' },
-  ];
-
-  for (const cat of defaultCategories) {
-    await db.execute(
-      'INSERT INTO categories (name, type, icon, color) VALUES ($1, $2, $3, $4)',
-      [cat.name, cat.type, cat.icon, cat.color]
-    );
-  }
-}
-
-/**
- * Check if database is ready
- */
-export function isReady() {
-  return db !== null;
-}
-
-/**
- * Get database instance
- */
-export function getDb() {
-  if (!db) {
-    throw new Error('Database not initialized. Call initDatabase() first.');
-  }
-  return db;
+function monthRange(yearMonth) {
+  const [year, month] = yearMonth.split('-').map(Number);
+  const start = `${yearMonth}-01`;
+  const nextMonth = month === 12 ? 1 : month + 1;
+  const nextYear = month === 12 ? year + 1 : year;
+  const end = `${nextYear}-${String(nextMonth).padStart(2, '0')}-01`;
+  return { start, end };
 }
 
 // ============================================================================
@@ -147,42 +25,40 @@ export function getDb() {
 // ============================================================================
 
 export async function addTransaction(type, amount, description, categoryId, date = null) {
-  const database = getDb();
-  const result = await database.execute(
-    `INSERT INTO transactions (type, amount, description, category_id, date) 
-     VALUES ($1, $2, $3, $4, COALESCE($5, CURRENT_DATE))`,
-    [type, amount, description, categoryId, date]
-  );
-  return result.lastInsertId;
+  const row = { type, amount, description, category_id: categoryId };
+  if (date) row.date = date;
+  const { data, error } = await supabase.from('transactions').insert(row).select('id').single();
+  throwIfError(error);
+  return data.id;
 }
 
 export async function getTransactions(limit = 50, offset = 0) {
-  const database = getDb();
-  return await database.select(
-    `SELECT t.*, c.name as category_name, c.icon as category_icon, c.color as category_color
-     FROM transactions t
-     LEFT JOIN categories c ON t.category_id = c.id
-     ORDER BY t.date DESC, t.created_at DESC
-     LIMIT $1 OFFSET $2`,
-    [limit, offset]
-  );
+  const { data, error } = await supabase
+    .from('transactions')
+    .select('*, category:categories(name, icon, color)')
+    .order('date', { ascending: false })
+    .order('created_at', { ascending: false })
+    .range(offset, offset + limit - 1);
+  throwIfError(error);
+  return data;
 }
 
 export async function getTransactionsByMonth(yearMonth) {
-  const database = getDb();
-  return await database.select(
-    `SELECT t.*, c.name as category_name, c.icon as category_icon, c.color as category_color
-     FROM transactions t
-     LEFT JOIN categories c ON t.category_id = c.id
-     WHERE strftime('%Y-%m', t.date) = $1
-     ORDER BY t.date DESC, t.created_at DESC`,
-    [yearMonth]
-  );
+  const { start, end } = monthRange(yearMonth);
+  const { data, error } = await supabase
+    .from('transactions')
+    .select('*, category:categories(name, icon, color)')
+    .gte('date', start)
+    .lt('date', end)
+    .order('date', { ascending: false })
+    .order('created_at', { ascending: false });
+  throwIfError(error);
+  return data;
 }
 
 export async function deleteTransaction(id) {
-  const database = getDb();
-  await database.execute('DELETE FROM transactions WHERE id = $1', [id]);
+  const { error } = await supabase.from('transactions').delete().eq('id', id);
+  throwIfError(error);
 }
 
 // ============================================================================
@@ -190,23 +66,38 @@ export async function deleteTransaction(id) {
 // ============================================================================
 
 export async function getCategories(type = null) {
-  const database = getDb();
+  let query = supabase.from('categories').select('*').order('type').order('name');
   if (type) {
-    return await database.select(
-      'SELECT * FROM categories WHERE type = $1 OR type = "both" ORDER BY name',
-      [type]
-    );
+    query = query.or(`type.eq.${type},type.eq.both`);
   }
-  return await database.select('SELECT * FROM categories ORDER BY type, name');
+  const { data, error } = await query;
+  throwIfError(error);
+  return data;
 }
 
 export async function addCategory(name, type, icon = null, color = null) {
-  const database = getDb();
-  const result = await database.execute(
-    'INSERT INTO categories (name, type, icon, color) VALUES ($1, $2, $3, $4)',
-    [name, type, icon, color]
-  );
-  return result.lastInsertId;
+  const { data, error } = await supabase
+    .from('categories')
+    .insert({ name, type, icon, color })
+    .select('id')
+    .single();
+  throwIfError(error);
+  return data.id;
+}
+
+export async function updateCategory(id, { name, type, icon, color } = {}) {
+  const updates = {};
+  if (name !== undefined) updates.name = name;
+  if (type !== undefined) updates.type = type;
+  if (icon !== undefined) updates.icon = icon;
+  if (color !== undefined) updates.color = color;
+  const { error } = await supabase.from('categories').update(updates).eq('id', id);
+  throwIfError(error);
+}
+
+export async function deleteCategory(id) {
+  const { error } = await supabase.from('categories').delete().eq('id', id);
+  throwIfError(error);
 }
 
 // ============================================================================
@@ -214,55 +105,23 @@ export async function addCategory(name, type, icon = null, color = null) {
 // ============================================================================
 
 export async function getMonthlyStats(yearMonth) {
-  const database = getDb();
-  
-  const income = await database.select(
-    `SELECT COALESCE(SUM(amount), 0) as total 
-     FROM transactions 
-     WHERE type = 'income' AND strftime('%Y-%m', date) = $1`,
-    [yearMonth]
-  );
-
-  const expenses = await database.select(
-    `SELECT COALESCE(SUM(amount), 0) as total 
-     FROM transactions 
-     WHERE type = 'expense' AND strftime('%Y-%m', date) = $1`,
-    [yearMonth]
-  );
-
-  const creditPayments = await database.select(
-    `SELECT COALESCE(SUM(amount), 0) as total 
-     FROM transactions 
-     WHERE type = 'credit_payment' AND strftime('%Y-%m', date) = $1`,
-    [yearMonth]
-  );
-
-  const totalIncome = income[0].total;
-  const totalExpenses = expenses[0].total;
-  const totalCreditPayments = creditPayments[0].total;
-  const netSavings = totalIncome - totalExpenses - totalCreditPayments;
-  const savingsRate = totalIncome > 0 ? (netSavings / totalIncome) * 100 : 0;
-
+  const { data, error } = await supabase
+    .rpc('get_monthly_stats', { year_month: yearMonth })
+    .single();
+  throwIfError(error);
   return {
-    income: totalIncome,
-    expenses: totalExpenses,
-    creditPayments: totalCreditPayments,
-    netSavings,
-    savingsRate
+    income: data.income,
+    expenses: data.expenses,
+    creditPayments: data.credit_payments,
+    netSavings: data.net_savings,
+    savingsRate: data.savings_rate,
   };
 }
 
 export async function getExpensesByCategory(yearMonth) {
-  const database = getDb();
-  return await database.select(
-    `SELECT c.name, c.icon, c.color, SUM(t.amount) as total
-     FROM transactions t
-     JOIN categories c ON t.category_id = c.id
-     WHERE t.type = 'expense' AND strftime('%Y-%m', t.date) = $1
-     GROUP BY c.id
-     ORDER BY total DESC`,
-    [yearMonth]
-  );
+  const { data, error } = await supabase.rpc('get_expenses_by_category', { year_month: yearMonth });
+  throwIfError(error);
+  return data;
 }
 
 // ============================================================================
@@ -270,40 +129,74 @@ export async function getExpensesByCategory(yearMonth) {
 // ============================================================================
 
 export async function addCreditCard(name, lastFourDigits, creditLimit, billingDay, dueDay) {
-  const database = getDb();
-  const result = await database.execute(
-    `INSERT INTO credit_cards (name, last_four_digits, credit_limit, billing_day, due_day) 
-     VALUES ($1, $2, $3, $4, $5)`,
-    [name, lastFourDigits, creditLimit, billingDay, dueDay]
-  );
-  return result.lastInsertId;
+  const { data, error } = await supabase
+    .from('credit_cards')
+    .insert({
+      name,
+      last_four_digits: lastFourDigits,
+      credit_limit: creditLimit,
+      billing_day: billingDay,
+      due_day: dueDay,
+    })
+    .select('id')
+    .single();
+  throwIfError(error);
+  return data.id;
 }
 
 export async function getCreditCards() {
-  const database = getDb();
-  return await database.select('SELECT * FROM credit_cards ORDER BY name');
+  const { data, error } = await supabase.from('credit_cards').select('*').order('name');
+  throwIfError(error);
+  return data;
+}
+
+export async function updateCreditCard(id, { name, lastFourDigits, creditLimit, billingDay, dueDay } = {}) {
+  const updates = {};
+  if (name !== undefined) updates.name = name;
+  if (lastFourDigits !== undefined) updates.last_four_digits = lastFourDigits;
+  if (creditLimit !== undefined) updates.credit_limit = creditLimit;
+  if (billingDay !== undefined) updates.billing_day = billingDay;
+  if (dueDay !== undefined) updates.due_day = dueDay;
+  const { error } = await supabase.from('credit_cards').update(updates).eq('id', id);
+  throwIfError(error);
+}
+
+export async function deleteCreditCard(id) {
+  const { error } = await supabase.from('credit_cards').delete().eq('id', id);
+  throwIfError(error);
 }
 
 export async function addCreditCardStatement(cardId, statementDate, dueDate, totalAmount, minimumPayment) {
-  const database = getDb();
-  const result = await database.execute(
-    `INSERT INTO credit_card_statements 
-     (credit_card_id, statement_date, due_date, total_amount, minimum_payment) 
-     VALUES ($1, $2, $3, $4, $5)`,
-    [cardId, statementDate, dueDate, totalAmount, minimumPayment]
-  );
-  return result.lastInsertId;
+  const { data, error } = await supabase
+    .from('credit_card_statements')
+    .insert({
+      credit_card_id: cardId,
+      statement_date: statementDate,
+      due_date: dueDate,
+      total_amount: totalAmount,
+      minimum_payment: minimumPayment,
+    })
+    .select('id')
+    .single();
+  throwIfError(error);
+  return data.id;
 }
 
 export async function getPendingCreditCardStatements() {
-  const database = getDb();
-  return await database.select(
-    `SELECT s.*, c.name as card_name, c.last_four_digits
-     FROM credit_card_statements s
-     JOIN credit_cards c ON s.credit_card_id = c.id
-     WHERE s.is_paid = 0
-     ORDER BY s.due_date ASC`
-  );
+  const { data, error } = await supabase
+    .from('credit_card_statements')
+    .select('*, credit_card:credit_cards(name, last_four_digits)')
+    .eq('is_paid', false)
+    .order('due_date', { ascending: true });
+  throwIfError(error);
+  return data;
+}
+
+export async function markStatementPaid(id, paidAmount = null) {
+  const updates = { is_paid: true };
+  if (paidAmount !== null) updates.paid_amount = paidAmount;
+  const { error } = await supabase.from('credit_card_statements').update(updates).eq('id', id);
+  throwIfError(error);
 }
 
 // ============================================================================
@@ -311,22 +204,20 @@ export async function getPendingCreditCardStatements() {
 // ============================================================================
 
 export async function getSetting(key) {
-  const database = getDb();
-  const result = await database.select(
-    'SELECT value FROM settings WHERE key = $1',
-    [key]
-  );
-  return result.length > 0 ? result[0].value : null;
+  const { data, error } = await supabase
+    .from('settings')
+    .select('value')
+    .eq('key', key)
+    .maybeSingle();
+  throwIfError(error);
+  return data ? data.value : null;
 }
 
 export async function setSetting(key, value) {
-  const database = getDb();
-  await database.execute(
-    `INSERT INTO settings (key, value, updated_at) 
-     VALUES ($1, $2, CURRENT_TIMESTAMP)
-     ON CONFLICT(key) DO UPDATE SET value = $2, updated_at = CURRENT_TIMESTAMP`,
-    [key, value]
-  );
+  const { error } = await supabase
+    .from('settings')
+    .upsert({ key, value, updated_at: new Date().toISOString() }, { onConflict: 'user_id,key' });
+  throwIfError(error);
 }
 
 // ============================================================================
@@ -334,23 +225,24 @@ export async function setSetting(key, value) {
 // ============================================================================
 
 export async function setMonthlyBudget(month, incomeTarget, expenseLimit, savingsTargetPercent) {
-  const database = getDb();
-  await database.execute(
-    `INSERT INTO monthly_budgets (month, income_target, expense_limit, savings_target_percent) 
-     VALUES ($1, $2, $3, $4)
-     ON CONFLICT(month) DO UPDATE SET 
-       income_target = $2, 
-       expense_limit = $3, 
-       savings_target_percent = $4`,
-    [month, incomeTarget, expenseLimit, savingsTargetPercent]
+  const { error } = await supabase.from('monthly_budgets').upsert(
+    {
+      month,
+      income_target: incomeTarget,
+      expense_limit: expenseLimit,
+      savings_target_percent: savingsTargetPercent,
+    },
+    { onConflict: 'user_id,month' }
   );
+  throwIfError(error);
 }
 
 export async function getMonthlyBudget(month) {
-  const database = getDb();
-  const result = await database.select(
-    'SELECT * FROM monthly_budgets WHERE month = $1',
-    [month]
-  );
-  return result.length > 0 ? result[0] : null;
+  const { data, error } = await supabase
+    .from('monthly_budgets')
+    .select('*')
+    .eq('month', month)
+    .maybeSingle();
+  throwIfError(error);
+  return data;
 }
