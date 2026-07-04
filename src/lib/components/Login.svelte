@@ -21,7 +21,9 @@
         mode = 'signIn';
       }
     } catch (e) {
-      error = e.message;
+      error = /signups? (are )?(not allowed|disabled)/i.test(e.message)
+        ? 'Signups are currently invite-only. Contact the app admin for access.'
+        : e.message;
     } finally {
       loading = false;
     }
