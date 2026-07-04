@@ -1,7 +1,11 @@
 <script>
-  import { onMount } from 'svelte';
-  import { getMonthlyStats, getExpensesByCategory, getPendingCreditCardStatements } from '../db.js';
-  import { formatCurrency, currentYearMonth } from '../format.js';
+  import { onMount } from "svelte";
+  import {
+    getMonthlyStats,
+    getExpensesByCategory,
+    getPendingCreditCardStatements,
+  } from "../db.js";
+  import { formatCurrency, currentYearMonth } from "../format.js";
 
   const yearMonth = currentYearMonth();
 
@@ -25,7 +29,10 @@
     }
   });
 
-  $: creditCardDue = pendingStatements.reduce((sum, s) => sum + Number(s.total_amount), 0);
+  $: creditCardDue = pendingStatements.reduce(
+    (sum, s) => sum + Number(s.total_amount),
+    0,
+  );
 </script>
 
 <header>
@@ -54,7 +61,9 @@
       </div>
       <div class="stat-item">
         <span class="stat-label">Savings Rate</span>
-        <span class="stat-value text-success">{stats.savingsRate.toFixed(0)}%</span>
+        <span class="stat-value text-success"
+          >{stats.savingsRate.toFixed(0)}%</span
+        >
       </div>
       <div class="stat-item">
         <span class="stat-label">Credit Card Due</span>
@@ -69,7 +78,7 @@
       <p class="text-muted">No expenses recorded this month yet.</p>
     {:else}
       <ul class="category-list">
-        {#each expensesByCategory as cat}
+        {#each expensesByCategory as cat (cat.name)}
           <li>
             <span>{cat.icon} {cat.name}</span>
             <span>{formatCurrency(cat.total)}</span>

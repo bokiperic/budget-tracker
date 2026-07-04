@@ -1,5 +1,5 @@
-import { writable } from 'svelte/store';
-import { supabase } from '../supabaseClient.js';
+import { writable } from "svelte/store";
+import { supabase } from "../supabaseClient.js";
 
 // undefined = still loading initial session, null = signed out, object = signed in
 export const session = writable(undefined);

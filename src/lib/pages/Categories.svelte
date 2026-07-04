@@ -1,21 +1,26 @@
 <script>
-  import { onMount } from 'svelte';
-  import { getCategories, addCategory, updateCategory, deleteCategory } from '../db.js';
+  import { onMount } from "svelte";
+  import {
+    getCategories,
+    addCategory,
+    updateCategory,
+    deleteCategory,
+  } from "../db.js";
 
   let categories = [];
   let error = null;
   let loading = true;
 
-  let name = '';
-  let type = 'expense';
-  let icon = '';
-  let color = '#64748b';
+  let name = "";
+  let type = "expense";
+  let icon = "";
+  let color = "#64748b";
 
   let editingId = null;
-  let editName = '';
-  let editType = 'expense';
-  let editIcon = '';
-  let editColor = '#64748b';
+  let editName = "";
+  let editType = "expense";
+  let editIcon = "";
+  let editColor = "#64748b";
 
   async function load() {
     loading = true;
@@ -34,8 +39,8 @@
     error = null;
     try {
       await addCategory(name, type, icon || null, color || null);
-      name = '';
-      icon = '';
+      name = "";
+      icon = "";
       await load();
     } catch (e) {
       error = e.message;
@@ -46,8 +51,8 @@
     editingId = cat.id;
     editName = cat.name;
     editType = cat.type;
-    editIcon = cat.icon || '';
-    editColor = cat.color || '#64748b';
+    editIcon = cat.icon || "";
+    editColor = cat.color || "#64748b";
   }
 
   function cancelEdit() {
@@ -57,7 +62,12 @@
   async function saveEdit(id) {
     error = null;
     try {
-      await updateCategory(id, { name: editName, type: editType, icon: editIcon, color: editColor });
+      await updateCategory(id, {
+        name: editName,
+        type: editType,
+        icon: editIcon,
+        color: editColor,
+      });
       editingId = null;
       await load();
     } catch (e) {
@@ -135,14 +145,31 @@
               </select>
               <input type="text" bind:value={editIcon} maxlength="4" />
               <input type="color" bind:value={editColor} />
-              <button type="button" class="primary" on:click={() => saveEdit(cat.id)}>Save</button>
-              <button type="button" class="secondary" on:click={cancelEdit}>Cancel</button>
+              <button
+                type="button"
+                class="primary"
+                on:click={() => saveEdit(cat.id)}>Save</button
+              >
+              <button type="button" class="secondary" on:click={cancelEdit}
+                >Cancel</button
+              >
             </div>
           {:else}
-            <span>{cat.icon} {cat.name} <span class="text-muted">({cat.type})</span></span>
+            <span
+              >{cat.icon}
+              {cat.name} <span class="text-muted">({cat.type})</span></span
+            >
             <div class="row-actions">
-              <button type="button" class="secondary" on:click={() => startEdit(cat)}>Edit</button>
-              <button type="button" class="danger" on:click={() => handleDelete(cat.id)}>Delete</button>
+              <button
+                type="button"
+                class="secondary"
+                on:click={() => startEdit(cat)}>Edit</button
+              >
+              <button
+                type="button"
+                class="danger"
+                on:click={() => handleDelete(cat.id)}>Delete</button
+              >
             </div>
           {/if}
         </li>

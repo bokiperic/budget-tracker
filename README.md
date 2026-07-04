@@ -1,8 +1,10 @@
 # Budget Tracker
 
-***
+---
+
 This is just an initial readme file. The app is still in the process of POC, so it isn't ready for use. Also features list needs to be updated after initial development is done. These are just currently planned features.
-***
+
+---
 
 A personal finance application for tracking income, expenses, and credit card payments. Built with Tauri, Svelte, and SQLite.
 
