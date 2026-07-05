@@ -47,7 +47,7 @@ Sign-in is email/password via Supabase Auth. **Signups are currently invite-only
 3. **Set up Supabase**
 
    - Create a project at [supabase.com](https://supabase.com/).
-   - In the SQL Editor, run the migrations in `supabase/migrations/` in order (`0001_init.sql`, then `0002_grants.sql`). These create the schema, Row Level Security policies, a trigger that seeds default categories for new users, and the aggregation RPC functions the app relies on.
+   - In the SQL Editor, run the migrations in `supabase/migrations/` in numeric order (`0001_init.sql`, `0002_grants.sql`, ...). These create the schema, Row Level Security policies, a trigger that seeds default categories for new users, and the aggregation RPC functions the app relies on.
    - In Authentication → Providers → Email, configure sign-in as desired (confirm email, allow/disallow public signups).
    - Grab your Project URL and anon/public key from Settings → API.
 
@@ -101,7 +101,8 @@ budget-tracker/
 ├── supabase/
 │   └── migrations/
 │       ├── 0001_init.sql           # Schema, RLS policies, seeding trigger, stats RPC functions
-│       └── 0002_grants.sql         # Explicit GRANTs to the authenticated role
+│       ├── 0002_grants.sql         # Explicit GRANTs to the authenticated role
+│       └── 0003_constraints_and_perf.sql  # FK on-delete behavior, CHECKs, indexes, faster RPCs
 ├── .github/
 │   ├── workflows/
 │   │   ├── ci.yml                  # Build / quality / security-check jobs

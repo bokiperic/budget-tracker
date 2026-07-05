@@ -82,7 +82,7 @@ export async function getCategories(type = null) {
     .order("type")
     .order("name");
   if (type) {
-    query = query.or(`type.eq.${type},type.eq.both`);
+    query = query.in("type", [type, "both"]);
   }
   const { data, error } = await query;
   throwIfError(error);
