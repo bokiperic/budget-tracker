@@ -8,8 +8,11 @@
   } from "../db.js";
   import { formatCurrency } from "../format.js";
 
+  const PAGE_SIZE = 50;
+
   let transactions = [];
   let categories = [];
+  let hasMore = false;
   let error = null;
   let loading = true;
 
@@ -22,14 +25,29 @@
   async function load() {
     loading = true;
     try {
-      [transactions, categories] = await Promise.all([
-        getTransactions(),
+      // Fetch one row beyond the page size to know if more pages exist.
+      const [txns, cats] = await Promise.all([
+        getTransactions(PAGE_SIZE + 1),
         getCategories(),
       ]);
+      hasMore = txns.length > PAGE_SIZE;
+      transactions = txns.slice(0, PAGE_SIZE);
+      categories = cats;
     } catch (e) {
       error = e.message;
     } finally {
       loading = false;
+    }
+  }
+
+  async function loadMore() {
+    error = null;
+    try {
+      const more = await getTransactions(PAGE_SIZE + 1, transactions.length);
+      hasMore = more.length > PAGE_SIZE;
+      transactions = [...transactions, ...more.slice(0, PAGE_SIZE)];
+    } catch (e) {
+      error = e.message;
     }
   }
 
@@ -54,10 +72,14 @@
     }
   }
 
-  async function handleDelete(id) {
+  async function handleDelete(t) {
+    const label = t.description || t.type;
+    if (!window.confirm(`Delete "${label}" (${formatCurrency(t.amount)})?`)) {
+      return;
+    }
     error = null;
     try {
-      await deleteTransaction(id);
+      await deleteTransaction(t.id);
       await load();
     } catch (e) {
       error = e.message;
@@ -155,12 +177,17 @@
             <button
               type="button"
               class="secondary"
-              on:click={() => handleDelete(t.id)}>Delete</button
+              on:click={() => handleDelete(t)}>Delete</button
             >
           </div>
         </li>
       {/each}
     </ul>
+    {#if hasMore}
+      <button type="button" class="secondary load-more" on:click={loadMore}
+        >Load more</button
+      >
+    {/if}
   {/if}
 </section>
 
@@ -220,6 +247,11 @@
 
   .tx-amount {
     font-weight: 600;
+  }
+
+  .load-more {
+    width: 100%;
+    margin-top: var(--spacing-md);
   }
 
   .error-card {
