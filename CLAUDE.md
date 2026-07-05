@@ -20,7 +20,7 @@ npm test
 
 ## Architecture
 
-**Multi-tenant web app**: Svelte 4 + Vite frontend, Supabase (Postgres + Auth + Row Level Security) as the backend. No custom server — the frontend talks to Supabase directly via `@supabase/supabase-js`, and RLS policies enforce that each user only ever sees their own data.
+**Multi-tenant web app**: Svelte 5 + Vite frontend, Supabase (Postgres + Auth + Row Level Security) as the backend. Components are still written in Svelte 4 legacy syntax (`on:click`, `$:`, stores) running under Svelte 5's compatibility mode — match that style when editing existing components. No custom server — the frontend talks to Supabase directly via `@supabase/supabase-js`, and RLS policies enforce that each user only ever sees their own data.
 
 ```
 src/
