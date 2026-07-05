@@ -75,10 +75,17 @@
     }
   }
 
-  async function handleDelete(id) {
+  async function handleDelete(cat) {
+    if (
+      !window.confirm(
+        `Delete category "${cat.name}"? Transactions in it will become uncategorized.`,
+      )
+    ) {
+      return;
+    }
     error = null;
     try {
-      await deleteCategory(id);
+      await deleteCategory(cat.id);
       await load();
     } catch (e) {
       error = e.message;
@@ -168,7 +175,7 @@
               <button
                 type="button"
                 class="danger"
-                on:click={() => handleDelete(cat.id)}>Delete</button
+                on:click={() => handleDelete(cat)}>Delete</button
               >
             </div>
           {/if}

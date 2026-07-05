@@ -64,10 +64,17 @@
     }
   }
 
-  async function handleDeleteCard(id) {
+  async function handleDeleteCard(card) {
+    if (
+      !window.confirm(
+        `Delete card "${card.name}"? Its statements will also be deleted.`,
+      )
+    ) {
+      return;
+    }
     error = null;
     try {
-      await deleteCreditCard(id);
+      await deleteCreditCard(card.id);
       await load();
     } catch (e) {
       error = e.message;
@@ -184,7 +191,7 @@
           <button
             type="button"
             class="danger"
-            on:click={() => handleDeleteCard(c.id)}>Delete</button
+            on:click={() => handleDeleteCard(c)}>Delete</button
           >
         </li>
       {/each}
