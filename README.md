@@ -83,7 +83,7 @@ budget-tracker/
 │   │   ├── supabaseClient.js       # Supabase client singleton
 │   │   ├── auth.js                 # signIn / signUp / signOut wrappers
 │   │   ├── db.js                   # All Supabase queries (CRUD) + RPC calls for aggregation
-│   │   ├── format.js               # formatCurrency / currentYearMonth helpers
+│   │   ├── format.js               # formatCurrency / currentYearMonth / monthRange helpers
 │   │   ├── stores/
 │   │   │   └── session.js          # Svelte store tracking the current auth session
 │   │   ├── components/
@@ -145,6 +145,7 @@ npm run dev            # Start the Vite dev server
 npm run build           # Build for production
 npm run preview         # Preview a production build locally
 npm run check           # Run svelte-check (component diagnostics)
+npm test                # Run unit tests (Vitest)
 npm run lint            # Run ESLint
 npm run format           # Auto-format with Prettier
 npm run format:check    # Check formatting without writing

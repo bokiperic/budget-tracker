@@ -13,6 +13,9 @@ npm run build
 
 # Preview a production build locally
 npm run preview
+
+# Run unit tests (Vitest)
+npm test
 ```
 
 ## Architecture
@@ -28,7 +31,7 @@ src/
     supabaseClient.js           # Supabase client singleton (reads VITE_SUPABASE_URL/VITE_SUPABASE_ANON_KEY)
     auth.js                     # signIn / signUp / signOut wrappers
     db.js                       # All Supabase queries (CRUD for all entities) + RPC calls for aggregations
-    format.js                   # formatCurrency / currentYearMonth helpers
+    format.js                   # formatCurrency / currentYearMonth / monthRange helpers (unit-tested in format.test.js)
     stores/session.js           # Svelte store tracking the current Supabase auth session
     components/
       Login.svelte              # Email/password sign-in + sign-up form
