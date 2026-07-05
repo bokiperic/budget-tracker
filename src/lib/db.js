@@ -6,18 +6,10 @@
  */
 
 import { supabase } from "./supabaseClient.js";
+import { monthRange } from "./format.js";
 
 function throwIfError(error) {
   if (error) throw error;
-}
-
-function monthRange(yearMonth) {
-  const [year, month] = yearMonth.split("-").map(Number);
-  const start = `${yearMonth}-01`;
-  const nextMonth = month === 12 ? 1 : month + 1;
-  const nextYear = month === 12 ? year + 1 : year;
-  const end = `${nextYear}-${String(nextMonth).padStart(2, "0")}-01`;
-  return { start, end };
 }
 
 // ============================================================================
@@ -82,7 +74,7 @@ export async function getCategories(type = null) {
     .order("type")
     .order("name");
   if (type) {
-    query = query.or(`type.eq.${type},type.eq.both`);
+    query = query.in("type", [type, "both"]);
   }
   const { data, error } = await query;
   throwIfError(error);

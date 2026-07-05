@@ -13,11 +13,14 @@ npm run build
 
 # Preview a production build locally
 npm run preview
+
+# Run unit tests (Vitest)
+npm test
 ```
 
 ## Architecture
 
-**Multi-tenant web app**: Svelte 4 + Vite frontend, Supabase (Postgres + Auth + Row Level Security) as the backend. No custom server — the frontend talks to Supabase directly via `@supabase/supabase-js`, and RLS policies enforce that each user only ever sees their own data.
+**Multi-tenant web app**: Svelte 5 + Vite frontend, Supabase (Postgres + Auth + Row Level Security) as the backend. Components are still written in Svelte 4 legacy syntax (`on:click`, `$:`, stores) running under Svelte 5's compatibility mode — match that style when editing existing components. No custom server — the frontend talks to Supabase directly via `@supabase/supabase-js`, and RLS policies enforce that each user only ever sees their own data.
 
 ```
 src/
@@ -28,7 +31,7 @@ src/
     supabaseClient.js           # Supabase client singleton (reads VITE_SUPABASE_URL/VITE_SUPABASE_ANON_KEY)
     auth.js                     # signIn / signUp / signOut wrappers
     db.js                       # All Supabase queries (CRUD for all entities) + RPC calls for aggregations
-    format.js                   # formatCurrency / currentYearMonth helpers
+    format.js                   # formatCurrency / currentYearMonth / monthRange helpers (unit-tested in format.test.js)
     stores/session.js           # Svelte store tracking the current Supabase auth session
     components/
       Login.svelte              # Email/password sign-in + sign-up form

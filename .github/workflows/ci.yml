@@ -6,6 +6,13 @@ on:
   pull_request:
     branches: ["main"]
 
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   code-check:
     name: Code check (build)
@@ -32,6 +39,7 @@ jobs:
       - run: npm run check
       - run: npm run lint
       - run: npm run format:check
+      - run: npm test
 
   security-check:
     name: Security check (npm audit)
