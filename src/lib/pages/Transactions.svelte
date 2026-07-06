@@ -10,17 +10,17 @@
 
   const PAGE_SIZE = 50;
 
-  let transactions = [];
-  let categories = [];
-  let hasMore = false;
-  let error = null;
-  let loading = true;
+  let transactions = $state([]);
+  let categories = $state([]);
+  let hasMore = $state(false);
+  let error = $state(null);
+  let loading = $state(true);
 
-  let type = "expense";
-  let amount = "";
-  let description = "";
-  let categoryId = "";
-  let date = new Date().toISOString().slice(0, 10);
+  let type = $state("expense");
+  let amount = $state("");
+  let description = $state("");
+  let categoryId = $state("");
+  let date = $state(new Date().toISOString().slice(0, 10));
 
   async function load() {
     loading = true;
@@ -53,7 +53,8 @@
 
   onMount(load);
 
-  async function handleSubmit() {
+  async function handleSubmit(event) {
+    event.preventDefault();
     error = null;
     try {
       await addTransaction(
@@ -97,7 +98,7 @@
 
 <section class="card">
   <h2>Add Transaction</h2>
-  <form class="transaction-form" on:submit|preventDefault={handleSubmit}>
+  <form class="transaction-form" onsubmit={handleSubmit}>
     <div class="form-row">
       <div class="form-group">
         <label for="type">Type</label>
@@ -177,14 +178,14 @@
             <button
               type="button"
               class="secondary"
-              on:click={() => handleDelete(t)}>Delete</button
+              onclick={() => handleDelete(t)}>Delete</button
             >
           </div>
         </li>
       {/each}
     </ul>
     {#if hasMore}
-      <button type="button" class="secondary load-more" on:click={loadMore}
+      <button type="button" class="secondary load-more" onclick={loadMore}
         >Load more</button
       >
     {/if}

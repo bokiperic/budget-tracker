@@ -7,20 +7,20 @@
     deleteCategory,
   } from "../db.js";
 
-  let categories = [];
-  let error = null;
-  let loading = true;
+  let categories = $state([]);
+  let error = $state(null);
+  let loading = $state(true);
 
-  let name = "";
-  let type = "expense";
-  let icon = "";
-  let color = "#64748b";
+  let name = $state("");
+  let type = $state("expense");
+  let icon = $state("");
+  let color = $state("#64748b");
 
-  let editingId = null;
-  let editName = "";
-  let editType = "expense";
-  let editIcon = "";
-  let editColor = "#64748b";
+  let editingId = $state(null);
+  let editName = $state("");
+  let editType = $state("expense");
+  let editIcon = $state("");
+  let editColor = $state("#64748b");
 
   async function load() {
     loading = true;
@@ -35,7 +35,8 @@
 
   onMount(load);
 
-  async function handleAdd() {
+  async function handleAdd(event) {
+    event.preventDefault();
     error = null;
     try {
       await addCategory(name, type, icon || null, color || null);
@@ -103,7 +104,7 @@
 
 <section class="card">
   <h2>Add Category</h2>
-  <form class="mt-md" on:submit|preventDefault={handleAdd}>
+  <form class="mt-md" onsubmit={handleAdd}>
     <div class="form-row">
       <div class="form-group">
         <label for="name">Name</label>
@@ -155,9 +156,9 @@
               <button
                 type="button"
                 class="primary"
-                on:click={() => saveEdit(cat.id)}>Save</button
+                onclick={() => saveEdit(cat.id)}>Save</button
               >
-              <button type="button" class="secondary" on:click={cancelEdit}
+              <button type="button" class="secondary" onclick={cancelEdit}
                 >Cancel</button
               >
             </div>
@@ -170,12 +171,12 @@
               <button
                 type="button"
                 class="secondary"
-                on:click={() => startEdit(cat)}>Edit</button
+                onclick={() => startEdit(cat)}>Edit</button
               >
               <button
                 type="button"
                 class="danger"
-                on:click={() => handleDelete(cat)}>Delete</button
+                onclick={() => handleDelete(cat)}>Delete</button
               >
             </div>
           {/if}

@@ -3,13 +3,13 @@
   import { getMonthlyBudget, setMonthlyBudget } from "../db.js";
   import { currentYearMonth } from "../format.js";
 
-  let month = currentYearMonth();
-  let incomeTarget = "";
-  let expenseLimit = "";
-  let savingsTargetPercent = "";
-  let error = null;
-  let message = null;
-  let loading = true;
+  let month = $state(currentYearMonth());
+  let incomeTarget = $state("");
+  let expenseLimit = $state("");
+  let savingsTargetPercent = $state("");
+  let error = $state(null);
+  let message = $state(null);
+  let loading = $state(true);
 
   async function load() {
     loading = true;
@@ -29,7 +29,8 @@
 
   onMount(load);
 
-  async function handleSave() {
+  async function handleSave(event) {
+    event.preventDefault();
     error = null;
     message = null;
     try {
@@ -58,13 +59,13 @@
   <h2>Monthly Budget</h2>
   <div class="form-group mt-md">
     <label for="month">Month</label>
-    <input type="month" id="month" bind:value={month} on:change={load} />
+    <input type="month" id="month" bind:value={month} onchange={load} />
   </div>
 
   {#if loading}
     <p class="text-muted">Loading…</p>
   {:else}
-    <form on:submit|preventDefault={handleSave}>
+    <form onsubmit={handleSave}>
       <div class="form-group">
         <label for="income-target">Income Target</label>
         <input

@@ -20,7 +20,7 @@ npm test
 
 ## Architecture
 
-**Multi-tenant web app**: Svelte 5 + Vite frontend, Supabase (Postgres + Auth + Row Level Security) as the backend. Components are still written in Svelte 4 legacy syntax (`on:click`, `$:`, stores) running under Svelte 5's compatibility mode — match that style when editing existing components. No custom server — the frontend talks to Supabase directly via `@supabase/supabase-js`, and RLS policies enforce that each user only ever sees their own data.
+**Multi-tenant web app**: Svelte 5 + Vite frontend, Supabase (Postgres + Auth + Row Level Security) as the backend. Components use Svelte 5 runes syntax (`$state`/`$derived`/`$props`, `onclick`-style event attributes, `{@render children()}`) — use runes, not Svelte 4 legacy syntax (`on:click`, `$:`, `export let`, `<slot />`), when adding or editing components. The `session` Svelte store is intentional and fine (stores remain supported). No custom server — the frontend talks to Supabase directly via `@supabase/supabase-js`, and RLS policies enforce that each user only ever sees their own data.
 
 ```
 src/

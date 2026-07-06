@@ -1,6 +1,8 @@
 <script>
   import { link } from "svelte-spa-router";
   import { signOut } from "../auth.js";
+
+  let { children } = $props();
 </script>
 
 <div class="app-shell">
@@ -13,11 +15,11 @@
       <a href="/credit-cards" use:link>Credit Cards</a>
       <a href="/budgets" use:link>Budgets</a>
     </div>
-    <button type="button" class="secondary" on:click={signOut}>Sign Out</button>
+    <button type="button" class="secondary" onclick={signOut}>Sign Out</button>
   </nav>
 
   <main>
-    <slot />
+    {@render children?.()}
   </main>
 </div>
 
