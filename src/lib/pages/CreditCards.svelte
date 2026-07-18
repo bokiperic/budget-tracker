@@ -10,22 +10,22 @@
   } from "../db.js";
   import { formatCurrency } from "../format.js";
 
-  let cards = [];
-  let statements = [];
-  let error = null;
-  let loading = true;
+  let cards = $state([]);
+  let statements = $state([]);
+  let error = $state(null);
+  let loading = $state(true);
 
-  let name = "";
-  let lastFour = "";
-  let creditLimit = "";
-  let billingDay = "";
-  let dueDay = "";
+  let name = $state("");
+  let lastFour = $state("");
+  let creditLimit = $state("");
+  let billingDay = $state("");
+  let dueDay = $state("");
 
-  let stCardId = "";
-  let stStatementDate = "";
-  let stDueDate = "";
-  let stTotal = "";
-  let stMinPayment = "";
+  let stCardId = $state("");
+  let stStatementDate = $state("");
+  let stDueDate = $state("");
+  let stTotal = $state("");
+  let stMinPayment = $state("");
 
   async function load() {
     loading = true;
@@ -43,7 +43,8 @@
 
   onMount(load);
 
-  async function handleAddCard() {
+  async function handleAddCard(event) {
+    event.preventDefault();
     error = null;
     try {
       await addCreditCard(
@@ -81,7 +82,8 @@
     }
   }
 
-  async function handleAddStatement() {
+  async function handleAddStatement(event) {
+    event.preventDefault();
     error = null;
     try {
       await addCreditCardStatement(
@@ -123,7 +125,7 @@
 
 <section class="card">
   <h2>Add Credit Card</h2>
-  <form class="mt-md" on:submit|preventDefault={handleAddCard}>
+  <form class="mt-md" onsubmit={handleAddCard}>
     <div class="form-row">
       <div class="form-group">
         <label for="cc-name">Name</label>
@@ -191,7 +193,7 @@
           <button
             type="button"
             class="danger"
-            on:click={() => handleDeleteCard(c)}>Delete</button
+            onclick={() => handleDeleteCard(c)}>Delete</button
           >
         </li>
       {/each}
@@ -201,7 +203,7 @@
 
 <section class="card mt-lg">
   <h2>Add Statement</h2>
-  <form class="mt-md" on:submit|preventDefault={handleAddStatement}>
+  <form class="mt-md" onsubmit={handleAddStatement}>
     <div class="form-group">
       <label for="st-card">Card</label>
       <select id="st-card" bind:value={stCardId} required>
@@ -266,7 +268,7 @@
           <button
             type="button"
             class="secondary"
-            on:click={() => handleMarkPaid(s.id)}>Mark Paid</button
+            onclick={() => handleMarkPaid(s.id)}>Mark Paid</button
           >
         </li>
       {/each}
