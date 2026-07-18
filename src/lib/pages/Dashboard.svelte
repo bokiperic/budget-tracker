@@ -9,11 +9,15 @@
 
   const yearMonth = currentYearMonth();
 
-  let stats = null;
-  let expensesByCategory = [];
-  let pendingStatements = [];
-  let error = null;
-  let loading = true;
+  let stats = $state(null);
+  let expensesByCategory = $state([]);
+  let pendingStatements = $state([]);
+  let error = $state(null);
+  let loading = $state(true);
+
+  const creditCardDue = $derived(
+    pendingStatements.reduce((sum, s) => sum + Number(s.total_amount), 0),
+  );
 
   onMount(async () => {
     try {
@@ -28,11 +32,6 @@
       loading = false;
     }
   });
-
-  $: creditCardDue = pendingStatements.reduce(
-    (sum, s) => sum + Number(s.total_amount),
-    0,
-  );
 </script>
 
 <header>

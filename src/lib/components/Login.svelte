@@ -1,14 +1,15 @@
 <script>
   import { signIn, signUp } from "../auth.js";
 
-  let email = "";
-  let password = "";
-  let mode = "signIn"; // 'signIn' | 'signUp'
-  let error = null;
-  let message = null;
-  let loading = false;
+  let email = $state("");
+  let password = $state("");
+  let mode = $state("signIn"); // 'signIn' | 'signUp'
+  let error = $state(null);
+  let message = $state(null);
+  let loading = $state(false);
 
-  async function handleSubmit() {
+  async function handleSubmit(event) {
+    event.preventDefault();
     error = null;
     message = null;
     loading = true;
@@ -50,7 +51,7 @@
       <p class="text-success mt-md">{message}</p>
     {/if}
 
-    <form on:submit|preventDefault={handleSubmit} class="mt-lg">
+    <form onsubmit={handleSubmit} class="mt-lg">
       <div class="form-group">
         <label for="email">Email</label>
         <input
@@ -81,7 +82,7 @@
       {mode === "signIn"
         ? "Don't have an account?"
         : "Already have an account?"}
-      <button type="button" class="secondary" on:click={toggleMode}>
+      <button type="button" class="secondary" onclick={toggleMode}>
         {mode === "signIn" ? "Sign Up" : "Sign In"}
       </button>
     </p>
