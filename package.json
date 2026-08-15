@@ -15,19 +15,19 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
-    "@sveltejs/vite-plugin-svelte": "^7.2.0",
-    "eslint": "^10.7.0",
-    "eslint-plugin-svelte": "^3.20.0",
-    "globals": "^17.7.0",
-    "prettier": "^3.9.5",
+    "@sveltejs/vite-plugin-svelte": "^7.3.0",
+    "eslint": "^10.8.1",
+    "eslint-plugin-svelte": "^3.22.0",
+    "globals": "^17.10.0",
+    "prettier": "^3.9.6",
     "prettier-plugin-svelte": "^4.1.1",
-    "svelte": "^5.56.6",
-    "svelte-check": "^4.7.3",
-    "vite": "^8.1.5",
+    "svelte": "^5.56.8",
+    "svelte-check": "^4.7.5",
+    "vite": "^8.2.1",
     "vitest": "^4.1.10"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.110.7",
+    "@supabase/supabase-js": "^2.112.3",
     "svelte-spa-router": "^5.1.1"
   }
 }
